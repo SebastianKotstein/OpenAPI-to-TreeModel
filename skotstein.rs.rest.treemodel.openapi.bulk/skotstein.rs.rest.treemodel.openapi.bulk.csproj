@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\skotstein.rs.rest.treemodel.openapi\skotstein.rs.rest.treemodel.openapi.csproj" />
+    <ProjectReference Include="..\skotstein.rs.rest.treemodel\skotstein.rs.rest.treemodel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="skotstein.net.http.jsonkit">
+      <HintPath>..\..\API Guru Loader\skotstein.research.rest.apiguru.loader\skotstein.research.rest.apiguru.loader\bin\Debug\skotstein.net.http.jsonkit.dll</HintPath>
+    </Reference>
+    <Reference Include="skotstein.research.rest.apiguru.loader">
+      <HintPath>..\..\API Guru Loader\skotstein.research.rest.apiguru.loader\skotstein.research.rest.apiguru.loader\bin\Debug\skotstein.research.rest.apiguru.loader.exe</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
