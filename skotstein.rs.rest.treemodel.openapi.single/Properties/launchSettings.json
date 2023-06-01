@@ -2,7 +2,7 @@
   "profiles": {
     "skotstein.rs.rest.treemodel.openapi.single": {
       "commandName": "Project",
-      "commandLineArgs": "\"E:\\00 - Daten\\08 - Promotion\\00 - Publikationen\\99 - DRAFTS\\Embedding for M2M\\2021_12_18_apis\\2153\\0\\swagger.json\" \"E:\\Desktop\\spotify.json\""
+      "commandLineArgs": ""
     }
   }
 }
