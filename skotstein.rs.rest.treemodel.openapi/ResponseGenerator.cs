@@ -31,6 +31,7 @@ namespace skotstein.rs.rest.treemodel.openapi
     public class ResponseGenerator
     {
         private PayloadGenerator _payloadGenerator = new PayloadGenerator();
+        private ParameterGenerator _parameterGenerator = new ParameterGenerator();
 
         public ResponseNode Generate(string responseCode, OpenApiResponse openApiResponse)
         {
@@ -47,12 +48,23 @@ namespace skotstein.rs.rest.treemodel.openapi
             responseNode.Key = responseCode;
             responseNode.Value = responseCodeInt;
             responseNode.Description = openApiResponse.Description;
+
+            if(openApiResponse.Headers != null)
+            {
+                foreach(KeyValuePair<string, OpenApiHeader> openApiHeaderItem in openApiResponse.Headers)
+                {
+                    if(openApiHeaderItem.Value != null)
+                    {
+                        responseNode.AppendChildren(_parameterGenerator.Generate(openApiHeaderItem.Key, openApiHeaderItem.Value), omitInvalidNodes: true);
+                    }   
+                }
+            }
             
             if(openApiResponse.Content != null)
             {
                 foreach(KeyValuePair<string,OpenApiMediaType> openApiMediaTypeItem in openApiResponse.Content)
                 {
-                    responseNode.AppendChildren(_payloadGenerator.Generate(openApiMediaTypeItem.Key, openApiMediaTypeItem.Value),omitInvalidNodes:true);
+                     responseNode.AppendChildren(_payloadGenerator.Generate(openApiMediaTypeItem.Key, openApiMediaTypeItem.Value),omitInvalidNodes:true);
                 }
             }
             return responseNode;

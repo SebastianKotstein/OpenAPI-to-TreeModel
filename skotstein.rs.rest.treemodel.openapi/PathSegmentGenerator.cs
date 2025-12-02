@@ -85,7 +85,7 @@ namespace skotstein.rs.rest.treemodel.openapi
         {
             foreach (KeyValuePair<OperationType, OpenApiOperation> openApiOperation in openApiPathItem.Operations)
             {
-                pathSegment.AppendChildren(_methodGenerator.Generate(openApiOperation.Key, openApiOperation.Value), omitInvalidNodes: true);
+                pathSegment.AppendChildren(_methodGenerator.Generate(openApiOperation.Key, openApiOperation.Value, openApiPathItem.Parameters), omitInvalidNodes: true);
             }
         }
     }

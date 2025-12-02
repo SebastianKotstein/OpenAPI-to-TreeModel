@@ -18,6 +18,7 @@
 //LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE.
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using skotstein.rs.rest.treemodel.model;
 using System;
@@ -31,7 +32,9 @@ namespace skotstein.rs.rest.treemodel.openapi
 {
     public class PayloadSchemaGenerator
     {
-        public PropertyNode<object> Generate(OpenApiSchema openApiSchema)
+        private ExampleExtractor exampleExtractor = new ExampleExtractor();
+
+        public PropertyNode<object> Generate(OpenApiSchema openApiSchema,IDictionary<string, IList<IOpenApiPrimitive>> examples)
         {
             PropertyNode<object> propertyNode = new PropertyNode<object>();
             if (openApiSchema == null)
@@ -47,12 +50,15 @@ namespace skotstein.rs.rest.treemodel.openapi
             propertyNode.Description = openApiSchema.Description;
             propertyNode.Format = null;
             propertyNode.Pattern = null;
+            
+            
+            
 
-            AnalyzeSchema(openApiSchema, propertyNode, propertyNode.Xpath, new HashSet<OpenApiSchema>());
+            AnalyzeSchema(openApiSchema, propertyNode, propertyNode.Xpath, new HashSet<OpenApiSchema>(), examples);
             return propertyNode;
         }
 
-        private void AnalyzeSchema(OpenApiSchema schema, AbstractNode parent, string xPath, ISet<OpenApiSchema> alreadyAnalyzedSchemas)
+        private void AnalyzeSchema(OpenApiSchema schema, AbstractNode parent, string xPath, ISet<OpenApiSchema> alreadyAnalyzedSchemas, IDictionary<string, IList<IOpenApiPrimitive>> examples)
         {
             //Create a copy of the Set of already analyzed schemas. Thus, only current path within the structure is memorized:
             ISet<OpenApiSchema> alreadyAnalyzedSchemasCopy = new HashSet<OpenApiSchema>(alreadyAnalyzedSchemas);
@@ -62,10 +68,15 @@ namespace skotstein.rs.rest.treemodel.openapi
             }
             alreadyAnalyzedSchemasCopy.Add(schema);
 
+            if (schema.Example != null)
+            {
+                this.exampleExtractor.ExtractExamples(schema.Example, xPath, examples);
+            }
+
             //analyze items
             if (schema.Items != null)
             {
-                AnalyzeSchema(schema.Items, parent, xPath, alreadyAnalyzedSchemasCopy);
+                AnalyzeSchema(schema.Items, parent, xPath, alreadyAnalyzedSchemasCopy,examples);
             }
 
             //analyze linked schemas type of 'AllOf'
@@ -73,7 +84,7 @@ namespace skotstein.rs.rest.treemodel.openapi
             {
                 foreach (OpenApiSchema linkedSchema in schema.AllOf)
                 {
-                    AnalyzeSchema(linkedSchema, parent, xPath, alreadyAnalyzedSchemasCopy);
+                    AnalyzeSchema(linkedSchema, parent, xPath, alreadyAnalyzedSchemasCopy, examples);
                 }
             }
 
@@ -82,7 +93,7 @@ namespace skotstein.rs.rest.treemodel.openapi
             {
                 foreach (OpenApiSchema linkedSchema in schema.AnyOf)
                 {
-                    AnalyzeSchema(linkedSchema, parent, xPath, alreadyAnalyzedSchemasCopy);
+                    AnalyzeSchema(linkedSchema, parent, xPath, alreadyAnalyzedSchemasCopy, examples);
                 }
             }
 
@@ -91,7 +102,7 @@ namespace skotstein.rs.rest.treemodel.openapi
             {
                 foreach (OpenApiSchema linkedSchema in schema.OneOf)
                 {
-                    AnalyzeSchema(linkedSchema, parent, xPath, alreadyAnalyzedSchemasCopy);
+                    AnalyzeSchema(linkedSchema, parent, xPath, alreadyAnalyzedSchemasCopy, examples);
                 }
             }
 
@@ -100,7 +111,8 @@ namespace skotstein.rs.rest.treemodel.openapi
                 foreach (KeyValuePair<string, OpenApiSchema> prop in schema.Properties)
                 {
                     OpenApiSchema property = prop.Value;
-
+                    
+                 
                     if (property != null)
                     {
                         if (!String.IsNullOrWhiteSpace(property.Type) && property.Type.CompareTo("string") == 0)
@@ -114,6 +126,14 @@ namespace skotstein.rs.rest.treemodel.openapi
                             stringNode.Format = property.Format;
                             stringNode.Pattern = property.Pattern;
                             stringNode.Xpath = xPath + "." + prop.Key;
+                            
+
+                            if (property.Example != null)
+                            {
+                                this.exampleExtractor.ExtractExamples(property.Example, stringNode.Xpath, examples);
+                            }
+                            stringNode.Examples = this.exampleExtractor.GenerateExamples(stringNode.Xpath, examples);
+
                             parent.AppendChildren(stringNode, omitInvalidNodes: true);
                         }
                         else if (!String.IsNullOrWhiteSpace(property.Type) && property.Type.CompareTo("number") == 0)
@@ -127,6 +147,13 @@ namespace skotstein.rs.rest.treemodel.openapi
                             numberNode.Format = property.Format;
                             numberNode.Pattern = property.Pattern;
                             numberNode.Xpath = xPath + "." + prop.Key;
+
+                            if (property.Example != null)
+                            {
+                                this.exampleExtractor.ExtractExamples(property.Example, numberNode.Xpath, examples);
+                            }
+                            numberNode.Examples = this.exampleExtractor.GenerateExamples(numberNode.Xpath, examples);
+
                             parent.AppendChildren(numberNode, omitInvalidNodes: true);
                         }
                         else if (!String.IsNullOrWhiteSpace(property.Type) && property.Type.CompareTo("integer") == 0)
@@ -140,6 +167,13 @@ namespace skotstein.rs.rest.treemodel.openapi
                             integerNode.Format = property.Format;
                             integerNode.Pattern = property.Pattern;
                             integerNode.Xpath = xPath + "." + prop.Key;
+
+                            if (property.Example != null)
+                            {
+                                this.exampleExtractor.ExtractExamples(property.Example, integerNode.Xpath, examples);
+                            }
+                            integerNode.Examples = this.exampleExtractor.GenerateExamples(integerNode.Xpath, examples);
+
                             parent.AppendChildren(integerNode, omitInvalidNodes: true);
                         }
                         else if (!String.IsNullOrWhiteSpace(property.Type) && property.Type.CompareTo("boolean") == 0)
@@ -153,6 +187,13 @@ namespace skotstein.rs.rest.treemodel.openapi
                             booleanNode.Format = property.Format;
                             booleanNode.Pattern = property.Pattern;
                             booleanNode.Xpath = xPath + "." + prop.Key;
+
+                            if (property.Example != null)
+                            {
+                                this.exampleExtractor.ExtractExamples(property.Example, booleanNode.Xpath, examples);
+                            }
+                            booleanNode.Examples = this.exampleExtractor.GenerateExamples(booleanNode.Xpath, examples);
+
                             parent.AppendChildren(booleanNode, omitInvalidNodes: true);
                         }
                         else if(!String.IsNullOrWhiteSpace(property.Type) && property.Type.CompareTo("array")==0)
@@ -167,7 +208,7 @@ namespace skotstein.rs.rest.treemodel.openapi
                             arrayNode.Format = property.Format;
                             arrayNode.Pattern = property.Pattern;
 
-                            AnalyzeSchema(property, arrayNode, arrayNode.Xpath, alreadyAnalyzedSchemasCopy);
+                            AnalyzeSchema(property, arrayNode, arrayNode.Xpath, alreadyAnalyzedSchemasCopy, examples);
 
                             parent.AppendChildren(arrayNode, omitInvalidNodes: true);
                         }
@@ -183,7 +224,7 @@ namespace skotstein.rs.rest.treemodel.openapi
                             objectNode.Format = property.Format;
                             objectNode.Pattern = property.Pattern;
 
-                            AnalyzeSchema(property, objectNode, objectNode.Xpath, alreadyAnalyzedSchemasCopy);
+                            AnalyzeSchema(property, objectNode, objectNode.Xpath, alreadyAnalyzedSchemasCopy, examples);
 
                             parent.AppendChildren(objectNode, omitInvalidNodes: true);
                         }
@@ -199,7 +240,7 @@ namespace skotstein.rs.rest.treemodel.openapi
                             unknownNode.Format = property.Format;
                             unknownNode.Pattern = property.Pattern;
 
-                            AnalyzeSchema(property, unknownNode, unknownNode.Xpath, alreadyAnalyzedSchemasCopy);
+                            AnalyzeSchema(property, unknownNode, unknownNode.Xpath, alreadyAnalyzedSchemasCopy, examples);
 
                             parent.AppendChildren(unknownNode, omitInvalidNodes: true);
                         }  

@@ -31,9 +31,12 @@ namespace skotstein.rs.rest.treemodel.openapi
     public class MethodGenerator
     {
         private ResponseGenerator _responseGenerator = new ResponseGenerator();
+        private ParameterGenerator _parameterGenerator = new ParameterGenerator();
+        private PayloadGenerator _payloadGenerator = new PayloadGenerator();
 
-        public MethodNode Generate(OperationType method, OpenApiOperation openApiOperation)
+        public MethodNode Generate(OperationType method, OpenApiOperation openApiOperation, IList<OpenApiParameter> parameters)
         {
+
             MethodNode methodNode = new MethodNode();
             methodNode.Key = OperationTypeToString(method);
             if(methodNode.Key == null)
@@ -46,8 +49,26 @@ namespace skotstein.rs.rest.treemodel.openapi
             methodNode.Summary = openApiOperation.Summary;
             methodNode.Description = openApiOperation.Description;
 
-            if(openApiOperation.Responses != null)
+            //add request parameters
+            if(openApiOperation.Parameters != null)
             {
+                foreach (ParameterNode parameterNode in this.CreateParameters(parameters, openApiOperation.Parameters))
+                {
+                    methodNode.AppendChildren(parameterNode, omitInvalidNodes: true);
+                }
+            }
+            //add request payloads
+            if(openApiOperation.RequestBody != null && openApiOperation.RequestBody.Content != null)
+            {
+                foreach (KeyValuePair<string, OpenApiMediaType> openApiMediaTypeItem in openApiOperation.RequestBody.Content)
+                {
+                    methodNode.AppendChildren(_payloadGenerator.Generate(openApiMediaTypeItem.Key, openApiMediaTypeItem.Value), omitInvalidNodes: true);
+                }
+            }
+
+            //add responses
+            if(openApiOperation.Responses != null)
+            {  
                 foreach (KeyValuePair<string, OpenApiResponse> openApiResponsesItem in openApiOperation.Responses)
                 {
                     methodNode.AppendChildren(_responseGenerator.Generate(openApiResponsesItem.Key, openApiResponsesItem.Value), omitInvalidNodes: true);
@@ -79,6 +100,40 @@ namespace skotstein.rs.rest.treemodel.openapi
                 default:
                     return null;
             }
+        }
+
+        private IList<ParameterNode> CreateParameters(IList<OpenApiParameter> parametersFromPath, IList<OpenApiParameter> parametersFromOperation)
+        {
+            IDictionary<string, ParameterNode> parameterNodes = new Dictionary<string, ParameterNode>();
+            if(parametersFromOperation != null)
+            {
+                foreach (OpenApiParameter openApiParameter in parametersFromOperation)
+                {
+                    if(openApiParameter != null)
+                    {
+                        ParameterNode parameterNode = this._parameterGenerator.Generate(openApiParameter);
+                        if (!parameterNodes.ContainsKey(parameterNode.Key))
+                        {
+                            parameterNodes.Add(parameterNode.Key, parameterNode);
+                        }
+                    }
+                }
+            }
+            if (parametersFromPath != null)
+            {
+                foreach (OpenApiParameter openApiParameter in parametersFromPath)
+                {
+                    if (openApiParameter != null)
+                    {
+                        ParameterNode parameterNode = this._parameterGenerator.Generate(openApiParameter);
+                        if (!parameterNodes.ContainsKey(parameterNode.Key))
+                        {
+                            parameterNodes.Add(parameterNode.Key, parameterNode);
+                        }
+                    }
+                }
+            }
+            return new List<ParameterNode>(parameterNodes.Values);
         }
     }
 }

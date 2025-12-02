@@ -61,6 +61,9 @@ namespace skotstein.rs.rest.treemodel.model
         Property = 7,
 
         [StringEnum("pathSegment")]
-        PathSegment = 8
+        PathSegment = 8,
+
+        [StringEnum("parameter")]
+        Parameter = 9
     }
 }

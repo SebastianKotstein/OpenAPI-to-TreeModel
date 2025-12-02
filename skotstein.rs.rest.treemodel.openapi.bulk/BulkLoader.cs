@@ -45,6 +45,9 @@ namespace skotstein.rs.rest.treemodel.openapi.bulk
             IList<string> excludedApiKeys = new List<string>();
             string startDate = DateTime.Now.ToString(String.Format("yyyy-MM-dd_HH.mm.ss.FFF"));
 
+            IDictionary<String, int> exceptionCounter = new Dictionary<String, int>();
+
+
             //read input path (at least this Argument is required)
             if (args.Length < 1)
             {
@@ -90,7 +93,6 @@ namespace skotstein.rs.rest.treemodel.openapi.bulk
 
             int counter = 0;
             int errorCounter = 0;
-            int totalEndpointCounter = 0;
 
 
             Directory.CreateDirectory(outputPath);
@@ -152,18 +154,27 @@ namespace skotstein.rs.rest.treemodel.openapi.bulk
                         }
                         catch (Exception e)
                         {
-                            //Console.ForegroundColor = ConsoleColor.Red;
                             Log(logFile, "Tree file creation for '" + api.Value + "' version '" + version.Value + "' (" + api.Key + "." + version.Key + ") failed due to exception: " + e.Message, ConsoleColor.Red);
-                            //Console.WriteLine("Tree file creation for '" + api.Value + "' version '" + version.Value + "' (" + api.Key + "." + version.Key + ") failed due to exception: "+e.Message);
+                            if (exceptionCounter.ContainsKey(e.Message))
+                            {
+                                exceptionCounter[e.Message]++;
+                            }
+                            else
+                            {
+                                exceptionCounter.Add(e.Message, 1);
+                            }
                             errorCounter++;
                         }
                     }
                 }
             }
-            Log(logFile, "Completed for " + counter + " APIs, with " + totalEndpointCounter + " endpoints", ConsoleColor.White);
-            //Console.WriteLine("Completed for " + counter + " APIs, with " + totalEndpointCounter + " endpoints");
-            Log(logFile, "Failed APIs: " + errorCounter, ConsoleColor.Red);
-            //Console.WriteLine("Failed APIs: " + errorCounter);
+            Log(logFile, "Completed for " + counter + " APIs", ConsoleColor.White);
+            Log(logFile, "Failed APIs: " + errorCounter+", with the following expections: ", ConsoleColor.Red);
+            foreach(KeyValuePair<string, int> exception in exceptionCounter)
+            {
+                Log(logFile,exception.Key+" ("+exception.Value+")", ConsoleColor.Red);
+            }
+
             Console.ReadLine();
         }
 
