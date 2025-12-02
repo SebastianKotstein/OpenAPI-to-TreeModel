@@ -2,7 +2,7 @@
   "profiles": {
     "skotstein.rs.rest.treemodel.openapi.bulk": {
       "commandName": "Project",
-      "commandLineArgs": "\"E:\\00 - Daten\\08 - Promotion\\00 - Publikationen\\99 - DRAFTS\\Object Mapping with QA-Transfomers\\Experiments\\2022_10_X_Epochs_10_CodeBERT_\\0_Data_Preparation\\2022_10_11_APIs\" \"E:\\00 - Daten\\08 - Promotion\\00 - Publikationen\\99 - DRAFTS\\Object Mapping with QA-Transfomers\\Experiments\\2022_10_X_Epochs_10_CodeBERT_\\0_Data_Preparation\\in\" preferred 1316,1881,2057,2178"
+      "commandLineArgs": "\"E:\\Daten\\08 - Promotion\\01 - Dissertation\\Evaluation\\2024_06_08_APIs\" \"E:\\Daten\\08 - Promotion\\01 - Dissertation\\Evaluation\\out_w_parameters_and_request_schemas\" preferred docusign.net,kubernetes.io,microsoft.com.graph,microsoft.com.graph-beta,presalytics.io.ooxml,stripe.com"
     }
   }
 }
